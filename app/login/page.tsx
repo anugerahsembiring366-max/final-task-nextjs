@@ -29,14 +29,14 @@ export default function Login() {
   }, []);
 
   async function handleSubmit(formData: FormData) {
-    const result = await loginAction(formData);
-    if (result.success) {
-      router.push('/');
-      router.refresh();
-    } else {
-      setErrorMsg(result.message);
-    }
+  setErrorMsg(''); // Bersihkan status pesan error lama
+  const result = await loginAction(formData);
+  
+  // Jika kode sampai ke baris ini, berarti login gagal (karena jika sukses, halaman sudah otomatis dialihkan oleh server)
+  if (result && !result.success) {
+    setErrorMsg(result.message);
   }
+}
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[75vh] px-4 py-8">
