@@ -38,10 +38,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       isLoading,
       login: ({ token, user }) => {
+        console.log('🔑 AuthContext.login called with:', { token, user });
         setToken(token);
         setUser(user);
         localStorage.setItem(LS_TOKEN_KEY, token);
         localStorage.setItem(LS_USER_KEY, JSON.stringify(user));
+        console.log('✅ Token saved:', localStorage.getItem(LS_TOKEN_KEY) ? 'YES' : 'NO');
+        console.log('✅ User saved:', localStorage.getItem(LS_USER_KEY) ? 'YES' : 'NO');
       },
       logout: () => {
         setToken(null);

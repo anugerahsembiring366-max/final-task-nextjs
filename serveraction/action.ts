@@ -2,6 +2,7 @@
 'use server';
 
 import { cookies } from 'next/headers';
+import { revalidatePath } from 'next/cache';
 
 // Tipe Data Struktur Produk
 export interface Product {
@@ -84,6 +85,7 @@ export async function loginAction(formData: FormData) {
     const token = 'simulated-jwt-token-active-12345';
     cookieStore.set('user_token', token, { httpOnly: true });
     cookieStore.set('username', username as string, { httpOnly: true });
+    revalidatePath('/', 'layout');
     return { 
       success: true, 
       message: 'Login Berhasil!',
@@ -117,6 +119,7 @@ export async function loginAction(formData: FormData) {
       const cookieStore = await cookies();
       cookieStore.set('user_token', data.token, { httpOnly: true });
       cookieStore.set('username', username as string, { httpOnly: true });
+      revalidatePath('/', 'layout');
       return { 
         success: true, 
         message: 'Login Berhasil!',
@@ -139,6 +142,7 @@ export async function loginAction(formData: FormData) {
     const token = 'emergency-bypass-token-9999';
     cookieStore.set('user_token', token, { httpOnly: true });
     cookieStore.set('username', username as string, { httpOnly: true });
+    revalidatePath('/', 'layout');
     return { 
       success: true, 
       message: 'Login Berhasil (Emergency Bypass)!',

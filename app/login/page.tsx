@@ -31,14 +31,26 @@ export default function Login() {
   }, []);
 
   async function handleSubmit(formData: FormData) {
-    const result = await loginAction(formData);
-    if (result.success && result.token && result.user) {
-      // Simpan token dan user ke localStorage via AuthContext
-      login({ token: result.token, user: result.user });
-      router.push('/');
-      router.refresh();
-    } else {
-      setErrorMsg(result.message);
+    try {
+      console.log('🔐 Login attempt started...');
+      const result = await loginAction(formData);
+      console.log('📦 Login action result:', result);
+      
+      if (result.success && result.token && result.user) {
+        console.log('✅ Login successful, saving to context...');
+        console.log('📝 User data:', result.user);
+        // Simpan token dan user ke localStorage via AuthContext
+        login({ token: result.token, user: result.user });
+        console.log('💾 Saved to localStorage, redirecting...');
+        router.push('/');
+        router.refresh();
+      } else {
+        console.log('❌ Login failed:', result.message);
+        setErrorMsg(result.message);
+      }
+    } catch (error) {
+      console.error('🚨 Login error:', error);
+      setErrorMsg('Terjadi error saat login. Cek console untuk detail.');
     }
   }
 
