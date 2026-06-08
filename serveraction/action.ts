@@ -2,9 +2,8 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation'; // <-- Wajib pastikan baris impor ini ada
+import { redirect } from 'next/navigation';
 
-// Tipe Data Struktur Produk
 export interface Product {
   id: number;
   title: string;
@@ -14,7 +13,6 @@ export interface Product {
   image: string;
 }
 
-// Tipe Data Struktur Item Keranjang Belanja
 export interface CartItem {
   id: number;
   title: string;
@@ -23,7 +21,6 @@ export interface CartItem {
   quantity: number;
 }
 
-// Tipe Data Struktur User Login dari API
 export interface ApiUser {
   id: number;
   username: string;
@@ -41,7 +38,7 @@ export async function getProducts(
   page: number = 1,
   limit: number = 6
 ): Promise<{ products: Product[]; totalPages: number }> {
-  const res = await fetch('https://fakestoreapi.com/products', { cache: 'no-store' });
+  const res = await fetch('https://fakestoreapi.com', { cache: 'no-store' });
   if (!res.ok) throw new Error('Gagal mengambil data produk dari API');
   
   let allProducts: Product[] = await res.json();
@@ -71,7 +68,7 @@ export async function getProductDetail(id: string): Promise<Product> {
   return res.json();
 }
 
-// 3. LOGIN USER & SIMPAN TOKEN DI COOKIE (SUDAH DIPERBAIKI JALUR AWAIT & REDIRECTNYA)
+// 3. LOGIN USER & SIMPAN TOKEN DI COOKIE (VERSI RE-ARRANGE REDIRECT AMAN VERCEL)
 export async function loginAction(formData: FormData) {
   const username = formData.get('username');
   const password = formData.get('password');
@@ -113,12 +110,11 @@ export async function loginAction(formData: FormData) {
     }
   }
 
-  // Jika data username/password yang dimasukkan salah ketik
   if (!isLoginSuccess) {
     return { success: false, message: 'Username atau password salah.' };
   }
 
-  // BERIKUT KUNCI UTAMANYA: REDIRECT DI LUAR BLOK TRY-CATCH AGAR AMAN DI VERCEL
+  // REDIRECT DI LUAR BLOK TRY-CATCH AGAR VERCEL KELUAR DARI LOOPING
   redirect('/');
 }
 
@@ -196,7 +192,7 @@ export async function clearCartAction() {
 
 // 10. MENGAMBIL DAFTAR 10 USER LOGIN ASLI DARI INTERNET API
 export async function getAllUsers(): Promise<ApiUser[]> {
-  const res = await fetch('https://fakestoreapi.com/users', { 
+  const res = await fetch('https://fakestoreapi.com', { 
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store' 
