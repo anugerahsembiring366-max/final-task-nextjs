@@ -41,7 +41,7 @@ export async function getProducts(
   page: number = 1,
   limit: number = 6
 ): Promise<{ products: Product[]; totalPages: number }> {
-  const res = await fetch('https://fakestoreapi.com', { cache: 'no-store' });
+  const res = await fetch('https://fakestoreapi.com/products', { cache: 'no-store' });
   if (!res.ok) throw new Error('Gagal mengambil data produk dari API');
   
   let allProducts: Product[] = await res.json();
@@ -86,7 +86,7 @@ export async function loginAction(formData: FormData) {
 
   // Jalur Koneksi Internet Jaringan API Asli
   try {
-    const res = await fetch('https://fakestoreapi.com', {
+    const res = await fetch('https://fakestoreapi.com/users', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
