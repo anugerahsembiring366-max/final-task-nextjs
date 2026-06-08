@@ -2,9 +2,8 @@
 'use client';
 
 import { loginAction, getAllUsers } from '@/serveraction/action';
-import { useState, useEffect, useTransition } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/auth';
 
 export default function Login() {
   const [errorMsg, setErrorMsg] = useState('');
@@ -17,8 +16,6 @@ export default function Login() {
   const [showUserList, setShowUserList] = useState(false);
   
   const router = useRouter();
-  const { login } = useAuth();
-  const [isPending, startTransition] = useTransition();
 
   // Mengambil 10 data user asli dari API saat halaman dimuat
   useEffect(() => {
@@ -32,32 +29,13 @@ export default function Login() {
   }, []);
 
   async function handleSubmit(formData: FormData) {
-    startTransition(async () => {
-      try {
-        console.log('🔐 Login attempt started...');
-        const result = await loginAction(formData);
-        console.log('📦 Login action result:', result);
-        
-        if (result.success && result.token && result.user) {
-          console.log('✅ Login successful, saving to context...');
-          console.log('📝 User data:', result.user);
-          // Simpan token dan user ke localStorage via AuthContext
-          login({ token: result.token, user: result.user });
-          console.log('💾 Saved to localStorage, redirecting...');
-          
-          // Gunakan window.location untuk redirect yang lebih reliable
-          setTimeout(() => {
-            window.location.href = '/';
-          }, 300);
-        } else {
-          console.log('❌ Login failed:', result.message);
-          setErrorMsg(result.message);
-        }
-      } catch (error) {
-        console.error('🚨 Login error:', error);
-        setErrorMsg('Terjadi error saat login. Cek console untuk detail.');
-      }
-    });
+    const result = await loginAction(formData);
+    if (result.success) {
+      router.push('/');
+      router.refresh();
+    } else {
+      setErrorMsg(result.message);
+    }
   }
 
   return (
@@ -115,10 +93,9 @@ export default function Login() {
 
           <button 
             type="submit" 
-            disabled={isPending}
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 disabled:cursor-not-allowed text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2 tracking-wide"
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2 tracking-wide"
           >
-            {isPending ? '⏳ Sedang Login...' : 'Masuk Sekarang'}
+            Masuk Sekarang
           </button>
         </form>
 
