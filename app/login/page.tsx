@@ -3,21 +3,13 @@
 
 import { loginAction, getAllUsers } from '@/serveraction/action';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
 
 export default function Login() {
   const [errorMsg, setErrorMsg] = useState('');
   const [availableUsers, setAvailableUsers] = useState<any[]>([]);
-  
-  // State untuk mengontrol Tampilkan / Sembunyikan Password
   const [showPassword, setShowPassword] = useState(false);
-
-  // State untuk mengontrol Tampilkan / Sembunyikan Daftar User dari API
   const [showUserList, setShowUserList] = useState(false);
-  
-  const router = useRouter();
 
-  // Mengambil 10 data user asli dari API saat halaman dimuat
   useEffect(() => {
     getAllUsers()
       .then((data) => {
@@ -29,32 +21,35 @@ export default function Login() {
   }, []);
 
   async function handleSubmit(formData: FormData) {
-  setErrorMsg(''); 
-  const result = await loginAction(formData);
-  
-  // Jika kode sampai ke baris ini, berarti status loginAction mengembalikan status gagal
-  if (result && !result.success) {
-    setErrorMsg(result.message);
+    setErrorMsg(''); 
+    const result = await loginAction(formData);
+    
+    if (result && result.success && result.username && result.token) {
+      // Menulis cookie langsung di browser client agar Vercel ANTI-CRASH 100%
+      document.cookie = `user_token=${result.token}; path=/; max-age=86400`;
+      document.cookie = `username=${result.username}; path=/; max-age=86400`;
+      
+      // Alihkan halaman secara instan dan bersih ke beranda produk
+      window.location.href = '/';
+    } else {
+      setErrorMsg(result?.message ?? 'Gagal memproses login.');
+    }
   }
-}
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[75vh] px-4 py-8">
-      <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200 w-full max-w-sm box-border">
+      <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg border border-slate-200 w-full max-w-sm box-border text-center">
         
-        {/* Judul Form */}
         <h2 className="text-2xl font-black text-slate-800 text-center mb-1 tracking-tight">🔑 Login User</h2>
         <p className="text-xs text-slate-500 text-center mb-6">Masuk untuk menjelajahi katalog produk toko online</p>
         
-        {/* Notifikasi Eror */}
         {errorMsg && (
-          <div className="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-lg mb-4 border border-red-200">
+          <div className="bg-red-50 text-red-600 text-xs font-bold p-3 rounded-lg mb-4 border border-red-200 text-left">
             ⚠ {errorMsg}
           </div>
         )}
         
-        {/* Form Input Sesi Login */}
-        <form action={handleSubmit} className="space-y-4">
+        <form action={handleSubmit} className="space-y-4 text-left">
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Username</label>
             <input 
@@ -77,7 +72,6 @@ export default function Login() {
             />
           </div>
 
-          {/* Checkbox Tampilkan Password */}
           <div className="flex items-center gap-2 pt-1">
             <input 
               type="checkbox" 
@@ -93,14 +87,13 @@ export default function Login() {
 
           <button 
             type="submit" 
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2 tracking-wide"
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2 tracking-wide text-center"
           >
             Masuk Sekarang
           </button>
         </form>
 
-        {/* Garis Pembatas Akun Bantuan */}
-        <div className="mt-6 pt-4 border-t border-slate-100">
+        <div className="mt-6 pt-4 border-t border-slate-100 text-left">
           <div className="flex items-center gap-2 mb-3">
             <input 
               type="checkbox" 
@@ -114,7 +107,6 @@ export default function Login() {
             </label>
           </div>
 
-          {/* Kotak Gulir Daftar Akun Pembantu (Hanya muncul jika dicentang) */}
           {showUserList && (
             <div className="space-y-2 max-h-40 overflow-y-auto pr-1 mt-2 border border-slate-100 rounded-lg p-1 bg-slate-50">
               {availableUsers.length === 0 ? (

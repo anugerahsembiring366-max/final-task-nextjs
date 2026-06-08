@@ -2,7 +2,6 @@
 'use server';
 
 import { cookies } from 'next/headers';
-import { redirect } from 'next/navigation';
 
 export interface Product {
   id: number;
@@ -38,7 +37,7 @@ export async function getProducts(
   page: number = 1,
   limit: number = 6
 ): Promise<{ products: Product[]; totalPages: number }> {
-  const res = await fetch('https://fakestoreapi.com', { cache: 'no-store' });
+  const res = await fetch('https://fakestoreapi.com/products', { cache: 'no-store' });
   if (!res.ok) throw new Error('Gagal mengambil data produk dari API');
   
   let allProducts: Product[] = await res.json();
@@ -68,54 +67,16 @@ export async function getProductDetail(id: string): Promise<Product> {
   return res.json();
 }
 
-// 3. LOGIN USER & SIMPAN TOKEN DI COOKIE (VERSI RE-ARRANGE REDIRECT AMAN VERCEL)
+// 3. LOGIKA PENCOCOKAN DATA LOGIN (MURNI DATA, TANPA REDIRECT/COOKIE SERVER BIAR VERCEL AMAN)
 export async function loginAction(formData: FormData) {
   const username = formData.get('username');
   const password = formData.get('password');
 
-  let isLoginSuccess = false;
-
-  // JALUR 1: BYPASS SIMULASI UTAMA
-  if (username === 'mor_2314' && password === '83r5^_') {
-    const cookieStore = await cookies();
-    cookieStore.set('user_token', 'simulated-jwt-token-active-12345', { httpOnly: true });
-    cookieStore.set('username', username as string, { httpOnly: true });
-    isLoginSuccess = true;
+  if ((username === 'mor_2314' && password === '83r5^_') || (username === 'johnd' && password === 'm38rm7cc')) {
+    return { success: true, username: username as string, token: 'official-jwt-token-key-12345' };
   }
 
-  // JALUR 2: KONEKSI INTERNET JARINGAN API ASLI
-  if (!isLoginSuccess) {
-    try {
-      const res = await fetch('https://fakestoreapi.com', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        if (data && data.token) {
-          const cookieStore = await cookies();
-          cookieStore.set('user_token', data.token, { httpOnly: true });
-          cookieStore.set('username', username as string, { httpOnly: true });
-          isLoginSuccess = true;
-        }
-      }
-    } catch {
-      // JALUR 3: EMERGENCY BYPASS JIKA API INTERNET DOWN
-      const cookieStore = await cookies();
-      cookieStore.set('user_token', 'emergency-bypass-token-9999', { httpOnly: true });
-      cookieStore.set('username', username as string, { httpOnly: true });
-      isLoginSuccess = true;
-    }
-  }
-
-  if (!isLoginSuccess) {
-    return { success: false, message: 'Username atau password salah.' };
-  }
-
-  // REDIRECT DI LUAR BLOK TRY-CATCH AGAR VERCEL KELUAR DARI LOOPING
-  redirect('/');
+  return { success: false, message: 'Username atau password salah.' };
 }
 
 // 4. LOGOUT USER
@@ -192,7 +153,7 @@ export async function clearCartAction() {
 
 // 10. MENGAMBIL DAFTAR 10 USER LOGIN ASLI DARI INTERNET API
 export async function getAllUsers(): Promise<ApiUser[]> {
-  const res = await fetch('https://fakestoreapi.com', { 
+  const res = await fetch('https://fakestoreapi.com/users', { 
     method: 'GET',
     headers: { 'Content-Type': 'application/json' },
     cache: 'no-store' 
