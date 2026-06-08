@@ -6,7 +6,7 @@ import { cookies } from 'next/headers';
 import './globals.css'; 
 
 export const metadata = {
-  title: 'Toko Online Premium',
+  title: 'Toko Online Sembiring',
   description: 'Project Tugas Akhir Toko Online Modern Next.js',
 };
 

@@ -39,8 +39,8 @@ export default function Checkout() {
         {/* KONDISI 1: FORM PEMILIHAN METODE */}
         {status === 'pending' && (
           <form onSubmit={handlePaymentSubmit} className="space-y-4">
-            <h2 className="text-2xl font-black text-slate-800 tracking-tight m-0">💳 Simulasi Checkout</h2>
-            <p className="text-xs text-slate-500 m-0">Silakan tentukan jenis instrumen pembayaran akhir Anda.</p>
+            <h2 className="text-2xl font-black text-slate-800 tracking-tight m-0">💳 Checkout Payment</h2>
+            <p className="text-xs text-slate-500 m-0">Silakan pilih jenis pembayaran Anda.</p>
             
             <div className="text-left">
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Pilih Tipe Pembayaran</label>
@@ -98,7 +98,7 @@ export default function Checkout() {
                   onChange={(e) => setSpecificMethod(e.target.value)} 
                   className="w-full px-3 py-2.5 border border-emerald-500 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white cursor-pointer box-border"
                 >
-                  <option value="QRIS Dinamis">Scan QRIS GPN (Otomatis)</option>
+                  <option value="QRIS Dinamis">Scan QRIS (Otomatis)</option>
                 </select>
               </div>
             )}
@@ -165,7 +165,7 @@ export default function Checkout() {
             <h1 className="text-5xl m-0 animate-bounce">🎉</h1>
             <h2 className="text-2xl font-black text-emerald-600 m-0 tracking-tight">Pembayaran Sukses!</h2>
             <p className="text-sm text-slate-600 leading-relaxed m-0 px-2">
-              Simulasi transaksi via <span className="font-extrabold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{specificMethod}</span> berhasil diverifikasi oleh sistem simulator.
+              Transaksi via <span className="font-extrabold text-slate-800 bg-slate-100 px-1.5 py-0.5 rounded border border-slate-200">{specificMethod}</span> berhasil diverifikasi oleh sistem.
             </p>
             <div className="pt-4">
               <Link 
