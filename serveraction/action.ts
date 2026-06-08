@@ -76,46 +76,50 @@ export async function loginAction(formData: FormData) {
   const username = formData.get('username');
   const password = formData.get('password');
 
-  // Jalur Kerja Cepat (Simulasi bypass konfirmasi instan)
+  let isLoginSuccess = false;
+
+  // JALUR 1: BYPASS SIMULASI UTAMA
   if (username === 'mor_2314' && password === '83r5^_') {
     const cookieStore = await cookies();
     cookieStore.set('user_token', 'simulated-jwt-token-active-12345', { httpOnly: true });
     cookieStore.set('username', username as string, { httpOnly: true });
-    redirect('/'); // Dialihkan langsung dari sisi server agar Vercel aman
+    isLoginSuccess = true;
   }
 
-  // Jalur Koneksi Internet Jaringan API Asli
-  try {
-    const res = await fetch('https://fakestoreapi.com/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password }),
-    });
+  // JALUR 2: KONEKSI INTERNET JARINGAN API ASLI
+  if (!isLoginSuccess) {
+    try {
+      const res = await fetch('https://fakestoreapi.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-    if (!res.ok) {
-      return { success: false, message: 'Username atau password salah.' };
-    }
-
-    const data = await res.json();
-    if (data && data.token) {
+      if (res.ok) {
+        const data = await res.json();
+        if (data && data.token) {
+          const cookieStore = await cookies();
+          cookieStore.set('user_token', data.token, { httpOnly: true });
+          cookieStore.set('username', username as string, { httpOnly: true });
+          isLoginSuccess = true;
+        }
+      }
+    } catch {
+      // JALUR 3: EMERGENCY BYPASS JIKA API INTERNET DOWN
       const cookieStore = await cookies();
-      cookieStore.set('user_token', data.token, { httpOnly: true });
+      cookieStore.set('user_token', 'emergency-bypass-token-9999', { httpOnly: true });
       cookieStore.set('username', username as string, { httpOnly: true });
-      redirect('/'); // Dialihkan langsung dari sisi server
+      isLoginSuccess = true;
     }
-    return { success: false, message: 'Gagal mendapatkan token.' };
-  } catch (error) {
-    // Jika eror dipicu oleh fungsi redirect Next.js, wajib dilempar keluar agar tidak tertangkap sebagai eror jaringan
-    if (error instanceof Error && error.message.includes('NEXT_REDIRECT')) {
-      throw error;
-    }
-
-    // Jalur Penyelamat darurat jika API internet publik sedang bermasalah/down (SUDAH DITAMBAHKAN AWAIT)
-    const cookieStore = await cookies(); 
-    cookieStore.set('user_token', 'emergency-bypass-token-9999', { httpOnly: true });
-    cookieStore.set('username', username as string, { httpOnly: true });
-    redirect('/'); // Dialihkan langsung dari sisi server
   }
+
+  // Jika data username/password yang dimasukkan salah ketik
+  if (!isLoginSuccess) {
+    return { success: false, message: 'Username atau password salah.' };
+  }
+
+  // BERIKUT KUNCI UTAMANYA: REDIRECT DI LUAR BLOK TRY-CATCH AGAR AMAN DI VERCEL
+  redirect('/');
 }
 
 // 4. LOGOUT USER

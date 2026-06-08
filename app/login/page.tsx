@@ -29,10 +29,10 @@ export default function Login() {
   }, []);
 
   async function handleSubmit(formData: FormData) {
-  setErrorMsg(''); // Bersihkan status pesan error lama
+  setErrorMsg(''); 
   const result = await loginAction(formData);
   
-  // Jika kode sampai ke baris ini, berarti login gagal (karena jika sukses, halaman sudah otomatis dialihkan oleh server)
+  // Jika kode sampai ke baris ini, berarti status loginAction mengembalikan status gagal
   if (result && !result.success) {
     setErrorMsg(result.message);
   }
