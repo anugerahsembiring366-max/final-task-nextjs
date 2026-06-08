@@ -81,9 +81,23 @@ export async function loginAction(formData: FormData) {
   // Jalur Kerja Cepat (Simulasi bypass konfirmasi instan untuk akun utama)
   if (username === 'mor_2314' && password === '83r5^_') {
     const cookieStore = await cookies();
-    cookieStore.set('user_token', 'simulated-jwt-token-active-12345', { httpOnly: true });
+    const token = 'simulated-jwt-token-active-12345';
+    cookieStore.set('user_token', token, { httpOnly: true });
     cookieStore.set('username', username as string, { httpOnly: true });
-    return { success: true, message: 'Login Berhasil!' };
+    return { 
+      success: true, 
+      message: 'Login Berhasil!',
+      token: token,
+      user: {
+        id: 1,
+        username: username as string,
+        email: 'user@example.com',
+        name: {
+          firstname: 'Mor',
+          lastname: 'User'
+        }
+      }
+    };
   }
 
   // Jalur Koneksi Internet Jaringan API Asli
@@ -103,15 +117,42 @@ export async function loginAction(formData: FormData) {
       const cookieStore = await cookies();
       cookieStore.set('user_token', data.token, { httpOnly: true });
       cookieStore.set('username', username as string, { httpOnly: true });
-      return { success: true, message: 'Login Berhasil!' };
+      return { 
+        success: true, 
+        message: 'Login Berhasil!',
+        token: data.token,
+        user: {
+          id: 1,
+          username: username as string,
+          email: 'user@example.com',
+          name: {
+            firstname: 'User',
+            lastname: 'Fakestore'
+          }
+        }
+      };
     }
     return { success: false, message: 'Gagal mendapatkan token.' };
   } catch {
     // Jalur Penyelamat darurat jika API internet publik sedang bermasalah/down
     const cookieStore = await cookies();
-    cookieStore.set('user_token', 'emergency-bypass-token-9999', { httpOnly: true });
+    const token = 'emergency-bypass-token-9999';
+    cookieStore.set('user_token', token, { httpOnly: true });
     cookieStore.set('username', username as string, { httpOnly: true });
-    return { success: true, message: 'Login Berhasil (Emergency Bypass)!' };
+    return { 
+      success: true, 
+      message: 'Login Berhasil (Emergency Bypass)!',
+      token: token,
+      user: {
+        id: 1,
+        username: username as string,
+        email: 'user@example.com',
+        name: {
+          firstname: 'User',
+          lastname: 'Emergency'
+        }
+      }
+    };
   }
 }
 

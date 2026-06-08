@@ -4,6 +4,7 @@
 import { loginAction, getAllUsers } from '@/serveraction/action';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/auth';
 
 export default function Login() {
   const [errorMsg, setErrorMsg] = useState('');
@@ -16,6 +17,7 @@ export default function Login() {
   const [showUserList, setShowUserList] = useState(false);
   
   const router = useRouter();
+  const { login } = useAuth();
 
   // Mengambil 10 data user asli dari API saat halaman dimuat
   useEffect(() => {
@@ -30,7 +32,9 @@ export default function Login() {
 
   async function handleSubmit(formData: FormData) {
     const result = await loginAction(formData);
-    if (result.success) {
+    if (result.success && result.token && result.user) {
+      // Simpan token dan user ke localStorage via AuthContext
+      login({ token: result.token, user: result.user });
       router.push('/');
       router.refresh();
     } else {
