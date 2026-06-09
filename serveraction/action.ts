@@ -73,18 +73,11 @@ export async function getProductDetail(id: string): Promise<Product> {
   return res.json();
 }
 
-// 3. LOGIN USER & SIMPAN TOKEN DI COOKIE (DENGAN BYPASS SIMULASI ANTI-ERROR)
+// 3. LOGIN USER & SIMPAN TOKEN DI COOKIE
 export async function loginAction(formData: FormData) {
   const username = formData.get('username');
   const password = formData.get('password');
 
-  // Jalur Kerja Cepat (Simulasi bypass konfirmasi instan untuk akun utama)
-  if (username === 'mor_2314' && password === '83r5^_') {
-    const cookieStore = await cookies();
-    cookieStore.set('user_token', 'simulated-jwt-token-active-12345', { httpOnly: true });
-    cookieStore.set('username', username as string, { httpOnly: true });
-    return { success: true, message: 'Login Berhasil!' };
-  }
 
   // Jalur Koneksi Internet Jaringan API Asli
   try {
@@ -107,11 +100,7 @@ export async function loginAction(formData: FormData) {
     }
     return { success: false, message: 'Gagal mendapatkan token.' };
   } catch {
-    // Jalur Penyelamat darurat jika API internet publik sedang bermasalah/down
-    const cookieStore = await cookies();
-    cookieStore.set('user_token', 'emergency-bypass-token-9999', { httpOnly: true });
-    cookieStore.set('username', username as string, { httpOnly: true });
-    return { success: true, message: 'Login Berhasil (Emergency Bypass)!' };
+    return { success: false, message: 'Koneksi internet bermasalah, silakan coba lagi.' };
   }
 }
 
