@@ -1,7 +1,8 @@
 // app/login/page.tsx
 'use client';
 
-import { loginAction, getAllUsers } from '@/serveraction/action';
+// KUNCI: Tambahkan getProfile ke dalam daftar import dari server action
+import { loginAction, getAllUsers, getProfile } from '@/serveraction/action';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -17,8 +18,17 @@ export default function Login() {
   
   const router = useRouter();
 
-  // Mengambil 10 data user asli dari API saat halaman dimuat
+  // 🚀 SATPAM OTOMATIS: Memeriksa apakah user sudah login atau belum saat halaman dibuka
   useEffect(() => {
+    getProfile().then((user) => {
+      // Jika hasil getProfile mengembalikan data (artinya user sudah login), langsung usir ke beranda!
+      if (user) {
+        router.push('/');
+        router.refresh();
+      }
+    });
+
+    // Mengambil 10 data user asli dari API saat halaman dimuat
     getAllUsers()
       .then((data) => {
         setAvailableUsers(data);
@@ -26,7 +36,7 @@ export default function Login() {
       .catch(() => {
         console.log("Gagal memuat data user dari API internet");
       });
-  }, []);
+  }, [router]);
 
   async function handleSubmit(formData: FormData) {
     const result = await loginAction(formData);
@@ -63,7 +73,7 @@ export default function Login() {
               defaultValue="mor_2314" 
               required 
               className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent box-border bg-slate-50" 
-            />
+          />
           </div>
           
           <div>
@@ -93,7 +103,7 @@ export default function Login() {
 
           <button 
             type="submit" 
-            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2 tracking-wide"
+            className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-sm shadow-md hover:shadow-lg transition-all cursor-pointer mt-2 tracking-wide border-none"
           >
             Masuk Sekarang
           </button>
@@ -114,7 +124,7 @@ export default function Login() {
             </label>
           </div>
 
-          {/* Kotak Gulir Daftar Akun Pembantu (Hanya muncul jika dicentang) */}
+          {/* Kotak Gulir Daftar Akun Pembantu */}
           {showUserList && (
             <div className="space-y-2 max-h-40 overflow-y-auto pr-1 mt-2 border border-slate-100 rounded-lg p-1 bg-slate-50">
               {availableUsers.length === 0 ? (

@@ -117,8 +117,36 @@ export async function getProfile() {
   const token = cookieStore.get('user_token')?.value;
   const username = cookieStore.get('username')?.value;
 
-  if (!token) return null;
-  return { username, role: 'Customer', status: 'Active Account', token };
+  if (!token || !username) return null;
+
+  try {
+    // 1. Ambil seluruh daftar user dari API pusat
+    const response = await fetch('https://fakestoreapi.com/users', { cache: 'no-store' });
+    const allUsers = await response.json();
+
+    // 2. Cari data user mana yang cocok dengan username yang sedang login saat ini
+    const currentUserData = allUsers.find((u: any) => u.username === username);
+
+    if (currentUserData) {
+      // Kembalikan objek data super lengkap (Username, Email, Nama Lengkap, Telepon, Alamat)
+      return {
+        username: currentUserData.username,
+        email: currentUserData.email,
+        firstname: currentUserData.name.firstname,
+        lastname: currentUserData.name.lastname,
+        phone: currentUserData.phone,
+        city: currentUserData.address.city,
+        street: currentUserData.address.street,
+        number: currentUserData.address.number,
+        zipcode: currentUserData.address.zipcode
+      };
+    }
+    
+    // Cadangan jika tidak ketemu di API asli
+    return { username, email: `${username}@gmail.com`, firstname: username, lastname: '' };
+  } catch {
+    return { username, email: `${username}@gmail.com`, firstname: username, lastname: '' };
+  }
 }
 
 // 6. MENGAMBIL DATA KERANJANG BELANJA SPESIFIK PER USER LOGG-IN
@@ -192,4 +220,34 @@ export async function getAllUsers(): Promise<ApiUser[]> {
   }
 
   return res.json();
+}
+
+// Tambahkan 2 fungsi ini di file serveraction/action.ts kamu
+
+// 1. Fungsi untuk MENYIMPAN pesanan baru setelah sukses bayar
+export async function saveOrderAction(orderData: any) {
+  const cookieStore = await cookies();
+  const username = cookieStore.get('username')?.value || 'guest';
+  
+  // Ambil riwayat lama jika sudah pernah belanja sebelumnya
+  const existingHistoryRaw = cookieStore.get(`order_history_${username}`)?.value;
+  const existingHistory = existingHistoryRaw ? JSON.parse(existingHistoryRaw) : [];
+  
+  // Masukkan pesanan baru ke urutan paling atas
+  existingHistory.unshift(orderData);
+  
+  // Simpan kembali ke cookie brankas server selama 30 hari
+  cookieStore.set(`order_history_${username}`, JSON.stringify(existingHistory), {
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30
+  });
+}
+
+// 2. Fungsi untuk MENGAMBIL riwayat pesanan untuk dipajang di profil
+export async function getOrderHistory() {
+  const cookieStore = await cookies();
+  const username = cookieStore.get('username')?.value || 'guest';
+  
+  const historyRaw = cookieStore.get(`order_history_${username}`)?.value;
+  return historyRaw ? JSON.parse(historyRaw) : [];
 }

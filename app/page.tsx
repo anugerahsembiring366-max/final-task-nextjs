@@ -8,22 +8,22 @@ interface HomeProps {
 }
 
 export default async function Home({ searchParams }: HomeProps) {
-  // 1. Proteksi Halaman
+  // 1. Proteksi Halaman: Hanya boleh dibuka setelah login
   const user = await getProfile();
   if (!user) {
     redirect('/login');
   }
 
-  // 2. Ambil parameter URL
+  // 2. Ambil parameter filter dari URL browser
   const resolvedParams = await searchParams;
   const currentSearch = resolvedParams.search || "";
   const currentPage = parseInt(resolvedParams.page || "1") || 1;
   const itemsLimit = 6;
 
-  // 3. Ambil data produk
+  // 3. Ambil data katalog produk dari API internet
   const { products, totalPages } = await getProducts(currentSearch, currentPage, itemsLimit);
 
-  // 4. Server Action Form Pencarian
+  // 4. Server Action untuk Kotak Formulir Pencarian
   async function handleSearchSubmit(formData: FormData) {
     'use server';
     const query = formData.get('query') as string;
@@ -38,7 +38,7 @@ export default async function Home({ searchParams }: HomeProps) {
         <div>Selamat datang kembali, <span className="font-bold">{user.username}</span>! Selamat berbelanja.</div>
       </div>
 
-      {/* Header & Search Bar */}
+      {/* Header & Kotak Pencarian */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
         <h1 className="text-2xl font-black text-slate-800 tracking-tight m-0">Katalog Produk</h1>
         
@@ -50,7 +50,7 @@ export default async function Home({ searchParams }: HomeProps) {
             placeholder="Cari nama produk..." 
             className="px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-56 box-border bg-white" 
           />
-          <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow transition-colors cursor-pointer">
+          <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-bold shadow transition-colors cursor-pointer border-none">
             🔍 Cari
           </button>
           {currentSearch && (
@@ -61,7 +61,7 @@ export default async function Home({ searchParams }: HomeProps) {
         </form>
       </div>
 
-      {/* Grid List 2 Kolom Menyamping */}
+      {/* Grid Katalog List Produk */}
       {products.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-xl border border-slate-200 shadow-sm">
           <p className="text-slate-500 font-medium">❌ Produk "{currentSearch}" tidak ditemukan.</p>
@@ -70,11 +70,12 @@ export default async function Home({ searchParams }: HomeProps) {
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {products.map((product) => {
-              // Fungsi Server Action internal khusus untuk tombol beli instan depan
+              
+              // 5. Server Action internal khusus tombol beli instan 🛒 di halaman depan
               async function handleInstantAddToCart() {
                 'use server';
                 await addToCartAction(product);
-                // Lakukan redirect kembali ke halaman utama (+ parameter URL aktif) agar halaman langsung refresh memperbarui badge/angka keranjang
+                // Redirect ke alamatnya sendiri agar server otomatis refresh menyegarkan angka keranjang di menu atas layout
                 redirect(`/?search=${encodeURIComponent(currentSearch)}&page=${currentPage}`);
               }
 
@@ -83,7 +84,7 @@ export default async function Home({ searchParams }: HomeProps) {
                   key={product.id}
                   className="bg-white border border-slate-200 p-4 rounded-xl flex items-center shadow-sm hover:shadow-md hover:border-indigo-300 transition-all gap-4 relative group"
                 >
-                  {/* JALUR 1: KLIK AREA KIRI / TENGAH AKAN DIBAWA KE HALAMAN DETAIL */}
+                  {/* JALUR 1: Klik Area Gambar/Teks ke Halaman Detail */}
                   <Link 
                     href={`/product/${product.id}`} 
                     className="flex-1 flex items-center gap-4 text-none min-w-0"
@@ -93,7 +94,7 @@ export default async function Home({ searchParams }: HomeProps) {
                       <img src={product.image} alt={product.title} className="max-w-full max-h-full object-contain" />
                     </div>
                     
-                    {/* Deskripsi Teks */}
+                    {/* Deskripsi Teks Ringkas */}
                     <div className="flex-1 min-w-0 pr-6">
                       <h3 className="text-sm font-bold text-slate-800 truncate m-0 group-hover:text-indigo-600 transition-colors">
                         {product.title}
@@ -105,14 +106,13 @@ export default async function Home({ searchParams }: HomeProps) {
                     </div>
                   </Link>
 
-                  {/* JALUR 2: SISI KANAN KHUSUS UTK PANAH DETAIL & TOMBOL BELI INSTAN */}
+                  {/* JALUR 2: Sisi Kanan (Panah Detail & Tombol Beli Instan) */}
                   <div className="flex flex-col items-center justify-between h-full py-1 gap-4 flex-shrink-0">
-                    {/* Ikon Panah ke Detail */}
                     <Link href={`/product/${product.id}`} className="text-slate-300 group-hover:text-indigo-500 transition-colors text-base font-bold text-none">
                       ➔
                     </Link>
 
-                    {/* TOMBOL TAMBAH KERANJANG LANGSUNG DI HALAMAN DEPAN */}
+                    {/* Tombol troli instan menggunakan form action Server murni */}
                     <form action={handleInstantAddToCart}>
                       <button 
                         type="submit" 
@@ -129,7 +129,7 @@ export default async function Home({ searchParams }: HomeProps) {
             })}
           </div>
 
-          {/* Navigasi Tombol Halaman (Pagination) */}
+          {/* Navigasi Pagination Tombol Halaman */}
           <div className="flex justify-center items-center gap-4 pt-6 border-t border-slate-200 mt-8">
             {currentPage > 1 ? (
               <Link 
